@@ -2,6 +2,76 @@
  * Sales Order & Invoicing System
  */
 const CONFIG = { SHEET_NAMES: { USERS: 'Users', CUSTOMERS: 'Customers', PRODUCTS: 'Products', SALES_ORDERS: 'SalesOrders', ORDER_ITEMS: 'OrderItems', INVOICES: 'Invoices', AUDIT_LOG: 'AuditLog' }, STATUS: { QUOTE: 'Quote', ORDER: 'Order', INVOICED: 'Invoiced', PARTIAL: 'Partial Shipped', SHIPPED: 'Shipped', CANCELLED: 'Cancelled' }, PAYMENT_STATUS: { PENDING: 'Pending', PARTIAL: 'Partial', PAID: 'Paid' } };
+const SHEET_CONFIG = const SHEET_CONFIG = {
+  Users: { columns: ['Email', 'Name', 'Role', 'Department', 'Active'] },
+  Customers: { columns: ['CustomerID', 'Name', 'Email', 'Phone', 'Address', 'CreditLimit', 'Balance', 'CreatedAt'] },
+  Products: { columns: ['ProductID', 'SKU', 'Name', 'Description', 'UnitPrice', 'Cost', 'Stock', 'Active'] },
+  SalesOrders: { columns: ['OrderID', 'CustomerID', 'Status', 'Subtotal', 'Tax', 'Total', 'PaymentStatus', 'CreatedBy', 'CreatedAt', 'InvoiceID'] },
+  OrderItems: { columns: ['ItemID', 'OrderID', 'ProductID', 'ProductName', 'Quantity', 'UnitPrice', 'Total'] },
+  Invoices: { columns: ['InvoiceID', 'OrderID', 'CustomerID', 'InvoiceNumber', 'Amount', 'DueDate', 'Status', 'PaidAmount', 'PaidAt', 'CreatedAt'] },
+  AuditLog: { columns: ['Timestamp', 'User', 'Action', 'RecordID', 'OldValue', 'NewValue'] }
+};;
+
+// ============== ENHANCED UTILITIES (v2.0) ==============
+const VERSION = '2.0.0';
+
+function initializeSheets() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const created = [];
+  for (const [sheetName, config] of Object.entries(SHEET_CONFIG)) {
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+      created.push(sheetName);
+      sheet.getRange(1, 1, 1, config.columns.length).setValues([config.columns]).setFontWeight('bold');
+      sheet.setFrozenRows(1);
+      if (config.sampleData) config.sampleData.forEach(row => sheet.appendRow(row));
+    }
+  }
+  Logger.log('InitializeSheets: Created ' + created.join(', '));
+  return { created };
+}
+
+function handleError(error, context) {
+  const errorMsg = error instanceof Error ? error.message : String(error);
+  Logger.log('[ERROR] ' + context + ': ' + errorMsg);
+  if (typeof logAction === 'function') logAction('ERROR', context, '', errorMsg);
+  return { success: false, error: errorMsg };
+}
+
+function backupData() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const backupName = 'Backup_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd_HH-mm');
+  ss.copy(backupName);
+  if (typeof logAction === 'function') logAction('BACKUP_CREATED', 'System', '', backupName);
+  return { success: true, backupName };
+}
+
+function exportToPDF(sheetName) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = sheetName ? ss.getSheetByName(sheetName) : ss.getActiveSheet();
+  const pdf = DriveApp.getFileById(ss.getId()).getAs('application/pdf');
+  const pdfName = sheet.getName() + '_' + Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd') + '.pdf';
+  DriveApp.getRootFolder().createFile(pdf).setName(pdfName);
+  return { success: true, fileName: pdfName };
+}
+
+function onOpen() {
+  const ui = SpreadsheetApp.getUi();
+  ui.createMenu('🎯 System Menu')
+    .addItem('📊 Initialize Sheets', 'initializeSheets')
+    .addItem('💾 Create Backup', 'backupData')
+    .addItem('📄 Export to PDF', 'exportToPDF')
+    .addSeparator()
+    .addItem('ℹ️ About', 'showAbout')
+    .addToUi();
+}
+
+function showAbout() {
+  const ui = SpreadsheetApp.getUi();
+  ui.alert('System v' + VERSION, 'Enhanced with:\n- initializeSheets()\n- backupData()\n- exportToPDF()', ui.ButtonSet.OK);
+}
+
 function getSheet(name) { const ss = SpreadsheetApp.getActiveSpreadsheet(); let sheet = ss.getSheetByName(name); if (!sheet) { sheet = ss.insertSheet(name); setupHeaders(sheet, name); } return sheet; }
 function setupHeaders(sheet, name) { const h = { Users: ['Email', 'Name', 'Role', 'Department', 'Active'], Customers: ['CustomerID', 'Name', 'Email', 'Phone', 'Address', 'CreditLimit', 'Balance', 'CreatedAt'], Products: ['ProductID', 'SKU', 'Name', 'Description', 'UnitPrice', 'Cost', 'Stock', 'Active'], SalesOrders: ['OrderID', 'CustomerID', 'Status', 'Subtotal', 'Tax', 'Total', 'PaymentStatus', 'CreatedBy', 'CreatedAt', 'InvoiceID'], OrderItems: ['ItemID', 'OrderID', 'ProductID', 'ProductName', 'Quantity', 'UnitPrice', 'Total'], Invoices: ['InvoiceID', 'OrderID', 'CustomerID', 'InvoiceNumber', 'Amount', 'DueDate', 'Status', 'PaidAmount', 'PaidAt', 'CreatedAt'], AuditLog: ['Timestamp', 'User', 'Action', 'RecordID', 'OldValue', 'NewValue'] }; if (h[name]) { sheet.getRange(1, 1, 1, h[name].length).setValues([h[name]]); sheet.getRange(1, 1, 1, h[name].length).setFontWeight('bold'); } }
 function generateId(prefix) { return prefix + '-' + new Date().getFullYear() + '-' + Utilities.getUuid().substring(0, 6).toUpperCase(); }
