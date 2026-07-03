@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Sales & Invoicing</title><?!= include('Stylesheet'); ?></head>
+<body>
+<div class="app-container">
+<aside class="sidebar"><div class="sidebar-header"><div class="logo sales-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></div><span class="logo-text">Sales & Invoicing</span></div>
+<nav class="sidebar-nav">
+<button class="nav-item active" data-view="dashboard"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg><span>Dashboard</span></button>
+<button class="nav-item" data-view="orders"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line></svg><span>Orders</span></button>
+<button class="nav-item" data-view="invoices"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg><span>Invoices</span></button>
+<button class="nav-item" data-view="new-order"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg><span>New Order</span></button>
+</nav>
+<div class="sidebar-footer"><div class="user-info"><div class="user-avatar" id="userAvatar">U</div><div class="user-details"><span class="user-name" id="userName">Loading...</span></div></div></div>
+</aside>
+<main class="main-content">
+<header class="top-bar"><h1 class="page-title" id="pageTitle">Dashboard</h1><button class="btn btn-primary" onclick="switchView('new-order')">+ New Order</button></header>
+<div class="content-area">
+<section class="view active" id="dashboardView">
+<div class="stats-row"><div class="stat-card"><div class="stat-icon primary"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line></svg></div><div><span class="stat-label">Total Revenue</span><span class="stat-value" id="statRevenue">$0</span></div></div><div class="stat-card"><div class="stat-icon success"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg></div><div><span class="stat-label">Orders</span><span class="stat-value" id="statOrders">0</span></div></div><div class="stat-card"><div class="stat-icon warning"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle></svg></div><div><span class="stat-label">Pending Payments</span><span class="stat-value" id="statPending">$0</span></div></div></div>
+<div class="recent-list" id="recentOrders"></div>
+</section>
+<section class="view" id="ordersView"><div class="orders-list" id="ordersList"></div></section>
+<section class="view" id="invoicesView"><div class="invoices-list" id="invoicesList"></div></section>
+<section class="view" id="newOrderView"><div class="form-card"><h2>Create Sales Order</h2><form id="orderForm"><div class="form-group"><label>Customer</label><select id="customerSelect" required><option value="">Select customer</option></select></div><div class="line-items-section"><h3>Order Items</h3><div id="orderItems"><div class="line-item"><select class="product-select"><option value="">Select product</option></select><input type="number" placeholder="Qty" class="item-qty" oninput="calculateOrderTotal()"><input type="text" placeholder="Price" class="item-price" readonly><button type="button" class="btn-remove" onclick="removeOrderLine(this)">&times;</button></div></div><button type="button" class="btn btn-secondary" onclick="addOrderLine()">+ Add Item</button></div><div class="order-summary"><div><span>Subtotal:</span><span id="orderSubtotal">$0.00</span></div><div><span>Tax (10%):</span><span id="orderTax">$0.00</span></div><div><strong>Total:</strong><strong id="orderTotal">$0.00</strong></div></div><div class="form-actions"><button type="submit" class="btn btn-primary">Create Order</button></div></form></div></section>
+</div>
+</main>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<?!= include('JavaScript'); ?>
+</body>
+</html>
